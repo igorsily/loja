@@ -21,7 +21,9 @@ class ProdutoController {
    * @param {View} ctx.view
    */
   async index({ request, response, view }) {
-    const produtos = await Produto.all();
+    const produtos = await Produto.query()
+      .with("images")
+      .fetch();
 
     return response.status(200).json(produtos);
   }
@@ -34,7 +36,17 @@ class ProdutoController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
+  async store({ request, response }) {
+    const data = request.only(["nome", "preco", "descricao"]);
+
+    await Produto.create({ ...data })
+      .then(result => {
+        return response.status(201).json(result);
+      })
+      .catch(err => {
+        return response.status(400).json();
+      });
+  }
 
   /**
    * Display a single produto.
@@ -46,12 +58,14 @@ class ProdutoController {
    * @param {View} ctx.view
    */
   async show({ params, request, response, view }) {
-    await Produto.findOrFail(params.id)
+    const produto = await Produto.findOrFail(params.id);
+
+    await produto
+      .load("images")
       .then(result => {
         return response.status(200).json(result);
       })
       .catch(err => {
-        console.log("err");
         return response.status(404).json();
       });
   }
@@ -64,7 +78,22 @@ class ProdutoController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response }) {
+    const produto = await Produto.findOrFail(params.id);
+
+    const data = request.only(["nome", "descricao", "preco"]);
+
+    produto.merge(data);
+
+    await produto
+      .save(produto)
+      .then(() => {
+        return response.status(200).json(produto);
+      })
+      .catch(err => {
+        return response.status(400).json();
+      });
+  }
 
   /**
    * Delete a produto with id.
@@ -74,7 +103,11 @@ class ProdutoController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, request, response }) {
+    const produto = await Produto.findOrFail(params.id);
+
+    await produto.delete();
+  }
 }
 
 module.exports = ProdutoController;

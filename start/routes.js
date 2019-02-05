@@ -17,3 +17,6 @@
 const Route = use("Route");
 
 Route.resource("produtos", "ProdutoController").apiOnly();
+
+Route.post("produtos/:id/images", "ImageController.store");
+Route.get("images/:path", "ImageController.show");

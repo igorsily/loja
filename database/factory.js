@@ -26,7 +26,6 @@ Factory.blueprint("App/Models/Produto", faker => {
   return {
     nome: faker.company(),
     preco: faker.year(),
-    descricao: faker.paragraph({ sentences: 1 }),
-    image: faker.url({ path: "images" })
+    descricao: faker.paragraph({ sentences: 1 })
   };
 });
